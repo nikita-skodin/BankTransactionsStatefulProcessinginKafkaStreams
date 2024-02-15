@@ -76,7 +76,6 @@ public class BankTransactionProducer {
                 .amount(new BigDecimal(-10_000)).build();
 
         send(bankTransactionProducer, new ProducerRecord<>("bank-transactions", bankTransaction.getBalanceId(), toJson(bankTransaction)));
-
     }
 
     @SneakyThrows
