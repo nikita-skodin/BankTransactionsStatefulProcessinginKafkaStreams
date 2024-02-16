@@ -13,11 +13,13 @@ import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 public class BankTransactionProducer {
 
     public static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
+    @SneakyThrows
     public static void main(String[] args) {
         KafkaProducer<Long, String> bankTransactionProducer =
                 new KafkaProducer<>(Map.of(
@@ -76,6 +78,21 @@ public class BankTransactionProducer {
                 .amount(new BigDecimal(-10_000)).build();
 
         send(bankTransactionProducer, new ProducerRecord<>("bank-transactions", bankTransaction.getBalanceId(), toJson(bankTransaction)));
+
+        while (true){
+            Thread.sleep(1000L);
+
+            Stream.of(BankTransaction.builder()
+                            .id(1L)
+                            .balanceId(100L)
+                            .time(new Date())
+                            .amount(new BigDecimal("-10000"))
+                            .build())
+//                    .peek(bankTransaction1 -> log.info("bankTransaction1: {}", bankTransaction1))
+                    .map(t -> new ProducerRecord<>("bank-transactions", t.getBalanceId(), toJson(t)))
+                    .forEach(producerRecord -> send(bankTransactionProducer, producerRecord));
+        }
+
     }
 
     @SneakyThrows
